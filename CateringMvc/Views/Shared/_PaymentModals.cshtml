@@ -1,0 +1,65 @@
+@* Payment ke popups: Pending page (Done / Payment) aur Remaining Payments page (Payment) dono use karte hain. *@
+<!-- Order Done: payment mili ya nahi? -->
+<div class="modal fade" id="doneModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-check2-circle"></i> Order Done</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="/PendingOrders/Complete">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="doneId" />
+                <div class="modal-body">
+                    <p class="mb-1">Order <strong id="doneNo"></strong> &mdash; <strong id="doneCustomer"></strong></p>
+                    <p class="fs-5 mb-3">Baqi payment: <strong id="doneRemaining"></strong></p>
+                    <p class="mb-0">Kya baqi payment mil gayi?</p>
+                </div>
+                <div class="modal-footer flex-wrap">
+                    <button type="submit" name="paymentReceived" value="true" class="btn btn-success">
+                        <i class="bi bi-cash-coin"></i> Payment Receive (green)
+                    </button>
+                    <button type="submit" name="paymentReceived" value="false" class="btn btn-warning">
+                        <i class="bi bi-hourglass-split"></i> Payment Not Receive
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Payment lein (poori ya kuch) -->
+<div class="modal fade" id="receiveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-main text-white">
+                <h5 class="modal-title"><i class="bi bi-cash-coin"></i> Payment Receive</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="/RemainingPayments/Receive">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="receiveId" />
+                <input type="hidden" name="returnUrl" id="receiveReturn" />
+                <div class="modal-body">
+                    <p class="mb-1">Order <strong id="receiveNo"></strong> &mdash; <strong id="receiveCustomer"></strong></p>
+                    <p class="fs-5 mb-3">Baqi payment: <strong id="receiveRemaining"></strong></p>
+                    <label class="form-label" for="receiveAmount">Kitni payment mili? <span class="text-muted">(poori ke liye khali chhorein)</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">Rs</span>
+                        <input type="number" class="form-control" name="amount" id="receiveAmount" min="1" step="any" />
+                    </div>
+                </div>
+                <div class="modal-footer flex-wrap">
+                    <button type="submit" name="full" value="true" class="btn btn-success">
+                        <i class="bi bi-check2-all"></i> Payment Clear (poori)
+                    </button>
+                    <button type="submit" name="full" value="false" class="btn btn-gold">
+                        <i class="bi bi-cash"></i> Ye amount lein
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

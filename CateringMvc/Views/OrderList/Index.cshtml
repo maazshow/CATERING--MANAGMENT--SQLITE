@@ -1,0 +1,120 @@
+@model OrderListViewModel
+@{
+    ViewData["Title"] = "Complete Orders";
+    var fromStr = Model.FromDate?.ToString("yyyy-MM-dd");
+    var toStr = Model.ToDate?.ToString("yyyy-MM-dd");
+    var grandTotal = Model.Orders.Sum(o => o.TotalPrice).ToString("N0");
+    var grandPaid = Model.Orders.Sum(o => o.AdvancePaid).ToString("N0");
+    var grandRemaining = Model.Orders.Sum(o => o.Remaining).ToString("N0");
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h2 class="fw-bold mb-0">Complete Orders</h2>
+    <a class="btn btn-main" asp-action="Pdf" asp-route-q="@Model.Q" asp-route-fromDate="@fromStr" asp-route-toDate="@toStr">
+        <i class="bi bi-file-earmark-pdf-fill"></i> Download PDF
+    </a>
+</div>
+
+<p class="text-muted mb-2">Yahan wo orders hain jo Pending list mein <strong>Done</strong> ho chuke hain.</p>
+<div class="pay-legend mb-3">
+    <span class="pay-chip pay-green-chip">Payment poori</span>
+    <span class="pay-chip pay-yellow-chip">Kuch baqi</span>
+    <span class="pay-chip pay-red-chip">Bilkul payment nahi</span>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label mb-1" for="q">Search</label>
+                <input type="search" id="q" name="q" value="@Model.Q" class="form-control" placeholder="Name, phone, address, order #" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label mb-1" for="fromDate">From date</label>
+                <input type="date" id="fromDate" name="fromDate" value="@fromStr" class="form-control" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label mb-1" for="toDate">To date</label>
+                <input type="date" id="toDate" name="toDate" value="@toStr" class="form-control" />
+            </div>
+            <div class="col-6 col-md-2 d-grid">
+                <button type="submit" class="btn btn-gold"><i class="bi bi-search"></i> Search</button>
+            </div>
+            <div class="col-6 col-md-1 d-grid">
+                <a href="/OrderList" class="btn btn-outline-secondary" title="Clear filters"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+        <div class="form-text mt-2">PDF mein wohi orders aate hain jo neeche filter ke baad dikh rahe hain.</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Booked (date &amp; time)</th>
+                    <th>Order date &amp; time</th>
+                    <th>Customer</th>
+                    <th>Phone 1</th>
+                    <th>Phone 2</th>
+                    <th>Address</th>
+                    <th>Items</th>
+                    <th class="text-end">Payment</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var o in Model.Orders)
+                {
+                    <tr class="@o.RowClass">
+                        <td>@o.Id</td>
+                        <td class="text-nowrap">@o.CreatedAt.ToString("dd MMM yyyy")<br /><small class="text-muted">@o.CreatedAt.ToString("hh:mm tt")</small></td>
+                        <td class="text-nowrap">@o.DeliveryDate.ToString("dd MMM yyyy")<br /><small class="text-muted">@o.DeliveryDate.ToString("hh:mm tt")</small></td>
+                        <td>@o.CustomerName</td>
+                        <td class="text-nowrap">@o.Phone1</td>
+                        <td class="text-nowrap">@(o.Phone2 ?? "-")</td>
+                        <td style="min-width:160px">@o.Address</td>
+                        <td style="min-width:220px">
+                            @if (o.Lines.Count > 0)
+                            {
+                                @foreach (var l in o.Lines)
+                                {
+                                    <div><strong>@l.Description</strong><br /><small class="text-muted">@l.Detail</small></div>
+                                }
+                            }
+                            else
+                            {
+                                <strong>@o.ItemName</strong><br />
+                                <small class="text-muted">@o.QuantityText</small>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <div>Total: <strong>Rs @o.TotalPrice.ToString("N0")</strong></div>
+                            <div>Paid: Rs @o.AdvancePaid.ToString("N0")</div>
+                            <div>Baqi: <strong>Rs @o.Remaining.ToString("N0")</strong></div>
+                            <span class="badge @(o.PayLabel == "Paid" ? "text-bg-success" : o.PayLabel == "Partial" ? "text-bg-warning" : "text-bg-danger")">@o.PayLabel</span>
+                        </td>
+                        <td class="text-nowrap">
+                            <div class="d-flex gap-1">
+                                <a class="btn btn-sm btn-outline-dark" href="/Order/Receipt/@o.Id?print=1" target="_blank" title="Receipt print"><i class="bi bi-printer"></i></a>
+                                <form asp-action="Delete" asp-route-id="@o.Id" method="post" onsubmit="return confirm('Is order ko delete karna hai?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (!Model.Orders.Any())
+    {
+        <div class="text-center text-muted py-5">Koi order nahi mila.</div>
+    }
+    <div class="card-footer d-flex flex-wrap justify-content-between gap-2">
+        <span class="text-muted">@Model.Orders.Count order(s)</span>
+        <span><strong>Total: Rs @grandTotal</strong> &nbsp;|&nbsp; Paid: Rs @grandPaid &nbsp;|&nbsp; <strong>Baqi: Rs @grandRemaining</strong></span>
+    </div>
+</div>

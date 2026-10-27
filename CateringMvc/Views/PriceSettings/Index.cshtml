@@ -1,0 +1,144 @@
+@model PriceSetting
+@{
+    ViewData["Title"] = "Price Adjustment";
+    var saved = TempData["Saved"] as string;
+}
+
+<h2 class="fw-bold mb-1">Price Adjustment</h2>
+<p class="text-muted">Biryani, Zarda, Chana, White, Chinese and Gor Wala Chawal have a fixed price for each size (8, 10, 12 and 14 kg). "Other charges" are pre-filled in those orders and can be changed per order. Korma, Beef Korma, Roast and Haleem use the cooking charges below automatically.</p>
+
+@if (!string.IsNullOrEmpty(saved))
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> @saved
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<form asp-action="Save" method="post">
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">🍚 Biryani Daig</div>
+                <div class="card-body">
+                    <div class="section-label">Fixed price by size</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("BiryaniPrice8Kg", "8 kg price", Model.BiryaniPrice8Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("BiryaniPrice10Kg", "10 kg price", Model.BiryaniPrice10Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("BiryaniPrice12Kg", "12 kg price", Model.BiryaniPrice12Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("BiryaniPrice14Kg", "14 kg price", Model.BiryaniPrice14Kg))
+                    <div class="section-label mt-4">Meat (per kg meat)</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("BiryaniMeatPerKg", "Meat price (1 kg)", Model.BiryaniMeatPerKg))
+                    <div class="section-label mt-4">Other charges (per item)</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("BiryaniCookingCharge", "Other charges (per item)", Model.BiryaniCookingCharge))
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">🍲 Korma</div>
+                <div class="card-body">
+                    <div class="section-label">Per kg meat</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("KormaMeatPerKg", "Meat price (1 kg)", Model.KormaMeatPerKg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("KormaCookingPerKg", "Cooking charges (per kg meat)", Model.KormaCookingPerKg))
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">🥩 Beef Korma</div>
+                <div class="card-body">
+                    <div class="section-label">Per kg meat</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("BeefKormaMeatPerKg", "Beef meat price (1 kg)", Model.BeefKormaMeatPerKg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("BeefKormaCookingPerKg", "Cooking charges (per kg meat)", Model.BeefKormaCookingPerKg))
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">🍗 Roast</div>
+                <div class="card-body">
+                    <div class="section-label">Per kg meat</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("RoastMeatPerKg", "Meat price (1 kg)", Model.RoastMeatPerKg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("RoastCookingPerKg", "Cooking charges (per kg meat)", Model.RoastCookingPerKg))
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">🥛 Raita</div>
+                <div class="card-body">
+                    <div class="section-label">Optional with Biryani, Chana Wala Chawal, Chinese Rice and Korma</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("RaitaPerKg", "Raita price (1 kg)", Model.RaitaPerKg))
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">🥣 Haleem</div>
+                <div class="card-body">
+                    <div class="section-label">Haleem price</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("HaleemPerKg", "Haleem price (1 kg)", Model.HaleemPerKg))
+                    <div class="section-label mt-4">Cooking charges (per item)</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("HaleemCookingCharge", "Cooking charges (per item)", Model.HaleemCookingCharge))
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">🍮 Zarda</div>
+                <div class="card-body">
+                    <div class="section-label">Fixed price by size</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("ZardaPrice8Kg", "8 kg price", Model.ZardaPrice8Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("ZardaPrice10Kg", "10 kg price", Model.ZardaPrice10Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("ZardaPrice12Kg", "12 kg price", Model.ZardaPrice12Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("ZardaPrice14Kg", "14 kg price", Model.ZardaPrice14Kg))
+                    <div class="section-label mt-4">Other charges (per item)</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("ZardaCookingCharge", "Other charges (per item)", Model.ZardaCookingCharge))
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">🫘 Chana Wala Chawal</div>
+                <div class="card-body">
+                    <div class="section-label">Fixed price by size</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("ChanaDaigPrice8Kg", "8 kg price", Model.ChanaDaigPrice8Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("ChanaDaigPrice10Kg", "10 kg price", Model.ChanaDaigPrice10Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("ChanaDaigPrice12Kg", "12 kg price", Model.ChanaDaigPrice12Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("ChanaDaigPrice14Kg", "14 kg price", Model.ChanaDaigPrice14Kg))
+                    <div class="section-label mt-4">Other charges (per item)</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("ChanaDaigCookingCharge", "Other charges (per item)", Model.ChanaDaigCookingCharge))
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">🍚 White Rice</div>
+                <div class="card-body">
+                    <div class="section-label">Fixed price by size</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("WhiteRicePrice8Kg", "8 kg price", Model.WhiteRicePrice8Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("WhiteRicePrice10Kg", "10 kg price", Model.WhiteRicePrice10Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("WhiteRicePrice12Kg", "12 kg price", Model.WhiteRicePrice12Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("WhiteRicePrice14Kg", "14 kg price", Model.WhiteRicePrice14Kg))
+                    <div class="section-label mt-4">Other charges (per item)</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("WhiteRiceCookingCharge", "Other charges (per item)", Model.WhiteRiceCookingCharge))
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">🍜 Chinese Rice</div>
+                <div class="card-body">
+                    <div class="section-label">Fixed price by size</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("SimpleRicePrice8Kg", "8 kg price", Model.SimpleRicePrice8Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("SimpleRicePrice10Kg", "10 kg price", Model.SimpleRicePrice10Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("SimpleRicePrice12Kg", "12 kg price", Model.SimpleRicePrice12Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("SimpleRicePrice14Kg", "14 kg price", Model.SimpleRicePrice14Kg))
+                    <div class="section-label mt-4">Other charges (per item)</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("SimpleRiceCookingCharge", "Other charges (per item)", Model.SimpleRiceCookingCharge))
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">🍯 Gor Wala Chawal</div>
+                <div class="card-body">
+                    <div class="section-label">Fixed price by size</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("GurChawalPrice8Kg", "8 kg price", Model.GurChawalPrice8Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("GurChawalPrice10Kg", "10 kg price", Model.GurChawalPrice10Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("GurChawalPrice12Kg", "12 kg price", Model.GurChawalPrice12Kg))
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("GurChawalPrice14Kg", "14 kg price", Model.GurChawalPrice14Kg))
+                    <div class="section-label mt-4">Other charges (per item)</div>
+                    @await Html.PartialAsync("_PriceField", new PriceFieldVm("GurChawalCookingCharge", "Other charges (per item)", Model.GurChawalCookingCharge))
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-main btn-lg"><i class="bi bi-save"></i> Save Prices</button>
+    </div>
+</form>

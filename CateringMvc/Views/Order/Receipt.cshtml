@@ -1,0 +1,139 @@
+@using CateringMvc.Services
+@model Order
+@{
+    Layout = null;
+    var autoPrint = Context.Request.Query["print"] == "1";
+    var payText = Model.Remaining <= 0 ? "PAID IN FULL" : Model.AdvancePaid > 0 ? "PARTIALLY PAID" : "PAYMENT DUE";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Receipt #@Model.Id</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #dcdcdc; font-family: 'Courier New', Consolas, monospace; color: #000; }
+        .toolbar { text-align: center; padding: 14px; }
+        .toolbar button, .toolbar a {
+            font: 600 14px 'Segoe UI', sans-serif; padding: 9px 20px; margin: 0 4px; border: 1.5px solid #000; border-radius: 999px;
+            background: #000; color: #fff; cursor: pointer; text-decoration: none; display: inline-block;
+        }
+        .toolbar a { background: #fff; color: #000; }
+
+        /* 80mm thermal receipt - strictly black & white */
+        .receipt { width: 76mm; max-width: 100%; margin: 0 auto 30px; background: #fff; padding: 10px 9px 16px; font-size: 12px; line-height: 1.4; box-shadow: 0 3px 14px rgba(0,0,0,.3); }
+        .c { text-align: center; }
+        .brand { background: #000; color: #fff; padding: 9px 4px 8px; text-align: center; }
+        .brand .shop { font: 700 20px Georgia, 'Times New Roman', serif; letter-spacing: 3px; text-transform: uppercase; line-height: 1.15; }
+        .brand .sub { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; margin-top: 3px; }
+        .addr { text-align: center; margin: 7px 0 0; font-size: 11px; }
+        .orn { text-align: center; letter-spacing: 6px; font-size: 11px; margin: 7px 0; }
+        .dash { border-top: 1px dashed #000; margin: 7px 0; }
+        .dbl { border-top: 3px double #000; margin: 7px 0; }
+        .title { text-align: center; font: 700 13px Georgia, serif; letter-spacing: 4px; }
+        .row { display: flex; justify-content: space-between; gap: 6px; }
+        .row .k { white-space: nowrap; }
+        .row .v { text-align: right; word-break: break-word; font-weight: 700; }
+        .sec { font-size: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; text-align: center; margin: 2px 0 5px; }
+        .item { margin-bottom: 5px; }
+        .item .l { display: flex; align-items: baseline; gap: 4px; }
+        .item .l .n { font-weight: 700; }
+        .item .l .dots { flex: 1; border-bottom: 1px dotted #000; transform: translateY(-3px); }
+        .item .l .a { font-weight: 700; }
+        .item .q { font-size: 11px; padding-left: 10px; }
+        .item .x { font-size: 11px; padding-left: 10px; display: flex; align-items: baseline; gap: 4px; }
+        .item .x .dots { flex: 1; border-bottom: 1px dotted #000; transform: translateY(-3px); }
+        .totals { border: 2px solid #000; padding: 6px 8px; }
+        .totals .grand { font: 700 16px Georgia, serif; }
+        .stamp { display: inline-block; border: 2px solid #000; padding: 2px 14px; font-weight: 700; letter-spacing: 3px; margin: 4px 0 2px; }
+        .thanks { text-align: center; margin-top: 8px; }
+        .thanks .t1 { font: italic 700 14px Georgia, serif; }
+        .thanks .t2 { font-size: 10.5px; }
+
+        @@media print {
+            body { background: #fff; }
+            .toolbar { display: none; }
+            .receipt { box-shadow: none; margin: 0; width: 100%; padding: 0 1mm 4mm; }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            @@page { size: 80mm auto; margin: 2mm; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <button type="button" onclick="window.print()">Print Receipt</button>
+        <a href="/PendingOrders">Pending Orders</a>
+    </div>
+
+    <div class="receipt">
+        <div class="brand">
+            <div class="shop">@BusinessInfo.Name</div>
+            <div class="sub">Catering &amp; Cooking</div>
+        </div>
+        <div class="addr">@BusinessInfo.Address<br />Phone: @BusinessInfo.Phone</div>
+        <div class="orn">&#10022; &#10022; &#10022;</div>
+        <div class="title">ORDER RECEIPT</div>
+        <div class="dbl"></div>
+
+        <div class="row"><span class="k">Receipt #</span><span class="v">@Model.Id</span></div>
+        <div class="row"><span class="k">Booked</span><span class="v">@Model.CreatedAt.ToString("dd/MM/yyyy hh:mm tt")</span></div>
+        <div class="row"><span class="k">Order for</span><span class="v">@Model.DeliveryDate.ToString("dd/MM/yyyy hh:mm tt")</span></div>
+        <div class="dash"></div>
+
+        <div class="sec">Customer</div>
+        <div class="row"><span class="k">Name</span><span class="v">@Model.CustomerName</span></div>
+        <div class="row"><span class="k">Phone</span><span class="v">@Model.Phone1</span></div>
+        @if (!string.IsNullOrWhiteSpace(Model.Phone2))
+        {
+            <div class="row"><span class="k">Phone 2</span><span class="v">@Model.Phone2</span></div>
+        }
+        <div class="row"><span class="k">Address</span><span class="v">@Model.Address</span></div>
+        <div class="dash"></div>
+
+        <div class="sec">Items</div>
+        @if (Model.Lines.Count > 0)
+        {
+            @foreach (var l in Model.Lines)
+            {
+                <div class="item">
+                    <div class="l"><span class="n">@l.Description</span><span class="dots"></span><span class="a">@((l.Amount - l.RaitaAmount).ToString("N0"))</span></div>
+                    @{ var qtyOnly = l.QuantityOnly; }
+                    <div class="q">@qtyOnly</div>
+                    @if (l.RaitaKg > 0)
+                    {
+                        <div class="x"><span>+ Raita @l.RaitaKg.ToString("0.##") kg</span><span class="dots"></span><span><strong>@l.RaitaAmount.ToString("N0")</strong></span></div>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="item">
+                <div class="l"><span class="n">@Model.ItemName</span><span class="dots"></span><span class="a">@Model.TotalPrice.ToString("N0")</span></div>
+                <div class="q">@Model.QuantityText</div>
+            </div>
+        }
+        <div class="dbl"></div>
+
+        <div class="totals">
+            <div class="row grand"><span>TOTAL</span><span>Rs @Model.TotalPrice.ToString("N0")</span></div>
+            <div class="row"><span>Advance Paid</span><span class="v">Rs @Model.AdvancePaid.ToString("N0")</span></div>
+            <div class="dash"></div>
+            <div class="row grand"><span>BALANCE</span><span>Rs @Model.Remaining.ToString("N0")</span></div>
+        </div>
+
+        <div class="c" style="margin-top:8px"><span class="stamp">@payText</span></div>
+        <div class="orn">&#10022; &#10022; &#10022;</div>
+        <div class="thanks">
+            <div class="t1">Thank you for your order!</div>
+            <div class="t2">Please keep this receipt for your records.</div>
+        </div>
+    </div>
+
+    @if (autoPrint)
+    {
+        <script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 300); });</script>
+    }
+</body>
+</html>

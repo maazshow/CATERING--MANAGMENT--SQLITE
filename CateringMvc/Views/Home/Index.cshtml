@@ -1,0 +1,59 @@
+@using CateringMvc.Services
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="hero text-center mb-4">
+    <h1 class="fw-bold">@BusinessInfo.Name</h1>
+    <p class="lead mb-0">Manage orders, prices, payments and records - all in one place.</p>
+    <div class="hero-meta">
+        <span class="hero-chip"><i class="bi bi-telephone-fill"></i>@BusinessInfo.Phone</span>
+        <span class="hero-chip"><i class="bi bi-geo-alt-fill"></i>@BusinessInfo.Address</span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6 col-lg-3">
+        <a href="/Order" class="text-decoration-none">
+            <div class="card home-card h-100 text-center p-4">
+                <div class="home-icon"><i class="bi bi-cart-plus-fill"></i></div>
+                <h5 class="mt-3 text-dark fw-bold">New Order</h5>
+                <p class="text-muted mb-0">Take an order or advance booking and print the receipt.</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="/PendingOrders" class="text-decoration-none">
+            <div class="card home-card h-100 text-center p-4">
+                <div class="home-icon"><i class="bi bi-hourglass-split"></i></div>
+                <h5 class="mt-3 text-dark fw-bold">Pending Orders</h5>
+                <p class="text-muted mb-0">Upcoming orders with reminders before delivery.</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="/OrderList" class="text-decoration-none">
+            <div class="card home-card h-100 text-center p-4">
+                <div class="home-icon"><i class="bi bi-list-check"></i></div>
+                <h5 class="mt-3 text-dark fw-bold">Complete Orders</h5>
+                <p class="text-muted mb-0">All finished orders, PDF download and receipt reprint.</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <a href="/RemainingPayments" class="text-decoration-none">
+            <div class="card home-card h-100 text-center p-4">
+                <div class="home-icon"><i class="bi bi-cash-coin"></i></div>
+                <h5 class="mt-3 text-dark fw-bold">Remaining Payments</h5>
+                <p class="text-muted mb-0">Track unpaid balances and collect payments.</p>
+            </div>
+        </a>
+    </div>
+    <div class="col-12">
+        <a href="/PriceSettings" class="text-decoration-none">
+            <div class="card home-card text-center p-3">
+                <span class="text-dark fw-semibold"><i class="bi bi-gear-fill me-1" style="color:var(--maroon)"></i> Price Adjustment - set rates for biryani, korma, zarda and more</span>
+            </div>
+        </a>
+    </div>
+</div>

@@ -1,0 +1,155 @@
+@using Microsoft.EntityFrameworkCore
+@using CateringMvc.Data
+@using CateringMvc.Services
+@inject AppDbContext Db
+@{
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    string Cls(string key) => ctrl == key ? "btn btn-nav active" : "btn btn-nav";
+
+    // Pending orders: jin ki date aaj ya guzar chuki hai unka reminder.
+    var today = DateTime.Today;
+    var tomorrow = today.AddDays(1);
+    var dueOrders = new List<Order>();
+    var pendingCount = 0;
+    var remainingCount = 0;
+    try
+    {
+        dueOrders = Db.Orders.AsNoTracking().Include(o => o.Lines)
+            .Where(o => o.Status == OrderStatus.Pending && o.DeliveryDate < tomorrow)
+            .OrderBy(o => o.DeliveryDate).ToList();
+        pendingCount = Db.Orders.Count(o => o.Status == OrderStatus.Pending);
+        remainingCount = Db.Orders.Count(o => o.TotalPrice - o.AdvancePaid > 0);
+    }
+    catch { /* database abhi ready nahi to reminder skip */ }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"] - @BusinessInfo.Name</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar navbar-expand-xl navbar-dark">
+            <div class="container">
+                <a class="navbar-brand" href="/"><i class="bi bi-egg-fried"></i> @BusinessInfo.Name<span class="brand-sub">Catering &amp; Cooking</span></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <div class="ms-auto d-flex flex-column flex-xl-row gap-2 mt-3 mt-xl-0">
+                        <a class="@Cls("PriceSettings")" href="/PriceSettings"><i class="bi bi-gear-fill"></i> Price Adjustment</a>
+                        <a class="@Cls("Order")" href="/Order"><i class="bi bi-cart-plus-fill"></i> Order</a>
+                        <a class="@Cls("PendingOrders")" href="/PendingOrders">
+                            <i class="bi bi-hourglass-split"></i> Pending Orders
+                            @if (pendingCount > 0)
+                            {
+                                <span class="badge @(dueOrders.Any() ? "bg-danger" : "bg-secondary") ms-1">@pendingCount</span>
+                            }
+                        </a>
+                        <a class="@Cls("OrderList")" href="/OrderList"><i class="bi bi-list-ul"></i> Complete Orders</a>
+                        <a class="@Cls("RemainingPayments")" href="/RemainingPayments">
+                            <i class="bi bi-cash-coin"></i> Remaining Payments
+                            @if (remainingCount > 0)
+                            {
+                                <span class="badge bg-danger ms-1">@remainingCount</span>
+                            }
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container py-4">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer text-center py-3">
+        <div class="foot-line"><i class="bi bi-geo-alt-fill"></i> @BusinessInfo.Address &nbsp;&bull;&nbsp; <i class="bi bi-telephone-fill"></i> @BusinessInfo.Phone</div>
+        <small>@BusinessInfo.Name &copy; @DateTime.Now.Year</small>
+    </footer>
+
+    @if (dueOrders.Any())
+    {
+        <!-- Din shuru hone ka reminder (har din pehli dafa site kholne par) -->
+        <div class="modal fade" id="reminderModal" tabindex="-1" aria-hidden="true" data-day="@today.ToString("yyyy-MM-dd")">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title"><i class="bi bi-bell-fill"></i> Reminder: aaj ke pending orders (@dueOrders.Count)</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr><th>#</th><th>Date &amp; time</th><th>Customer</th><th>Phone</th><th>Items</th><th class="text-end">Total</th></tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var d in dueOrders)
+                                    {
+                                        <tr>
+                                            <td>@d.Id</td>
+                                            <td class="text-nowrap">
+                                                @d.DeliveryDate.ToString("dd MMM, hh:mm tt")
+                                                @if (d.DeliveryDate.Date < today) { <span class="badge text-bg-danger">Late</span> }
+                                                else { <span class="badge text-bg-warning">Aaj</span> }
+                                            </td>
+                                            <td>@d.CustomerName</td>
+                                            <td class="text-nowrap">@d.Phone1</td>
+                                            <td>@d.ItemName</td>
+                                            <td class="text-end">Rs @d.TotalPrice.ToString("N0")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="/PendingOrders" class="btn btn-main">Pending Orders kholein</a>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Baad mein</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+
+    <!-- 1 ghanta pehle alert: "is customer ka order ready karo" -->
+    <div class="modal fade" id="readyModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="bi bi-alarm-fill"></i> Order ready karo!</h5>
+                </div>
+                <div class="modal-body" id="readyBody"></div>
+                <div class="modal-footer">
+                    <a href="/PendingOrders" class="btn btn-main">Pending Orders kholein</a>
+                    <button type="button" class="btn btn-gold" id="readyAck">Theek hai, samajh gaya</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/ready-alert.js"></script>
+    <script>
+        (function () {
+            var el = document.getElementById('reminderModal');
+            if (!el) return;
+            var key = 'reminder-' + el.dataset.day;
+            var seen = false;
+            try { seen = localStorage.getItem(key) === '1'; } catch (e) { }
+            if (seen) return;
+            try { localStorage.setItem(key, '1'); } catch (e) { }
+            bootstrap.Modal.getOrCreateInstance(el).show();
+        })();
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

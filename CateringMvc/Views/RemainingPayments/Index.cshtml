@@ -1,0 +1,108 @@
+@model RemainingViewModel
+@{
+    ViewData["Title"] = "Remaining Payments";
+    var msg = TempData["Msg"] as string;
+    var totalRemaining = Model.Orders.Sum(o => o.Remaining).ToString("N0");
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h2 class="fw-bold mb-0">Remaining Payments</h2>
+    <a class="btn btn-main" asp-action="Pdf" asp-route-q="@Model.Q">
+        <i class="bi bi-file-earmark-pdf-fill"></i> Download PDF
+    </a>
+</div>
+
+<p class="text-muted mb-2">Un customers ka record jin ki payment baqi hai (Pending ya Done dono orders). Payment milne par <strong>Payment Clear</strong> dabayein, order Complete Orders mein green ho jayega aur yahan se hat jayega.</p>
+<div class="pay-legend mb-3">
+    <span class="pay-chip pay-yellow-chip">Kuch payment mil chuki</span>
+    <span class="pay-chip pay-red-chip">Bilkul payment nahi mili</span>
+</div>
+
+@if (!string.IsNullOrEmpty(msg))
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i> @msg
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-2 align-items-end">
+            <div class="col-md-9">
+                <label class="form-label mb-1" for="q">Search</label>
+                <input type="search" id="q" name="q" value="@Model.Q" class="form-control" placeholder="Name, phone, address, order #" />
+            </div>
+            <div class="col-6 col-md-2 d-grid">
+                <button type="submit" class="btn btn-gold"><i class="bi bi-search"></i> Search</button>
+            </div>
+            <div class="col-6 col-md-1 d-grid">
+                <a href="/RemainingPayments" class="btn btn-outline-secondary" title="Clear"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Order date &amp; time</th>
+                    <th>Customer</th>
+                    <th>Phone 1</th>
+                    <th>Phone 2</th>
+                    <th>Address</th>
+                    <th>Items</th>
+                    <th>Order</th>
+                    <th class="text-end">Payment</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var o in Model.Orders)
+                {
+                    <tr class="@o.RowClass">
+                        <td>@o.Id</td>
+                        <td class="text-nowrap">@o.DeliveryDate.ToString("dd MMM yyyy")<br /><small class="text-muted">@o.DeliveryDate.ToString("hh:mm tt")</small></td>
+                        <td>@o.CustomerName</td>
+                        <td class="text-nowrap">@o.Phone1</td>
+                        <td class="text-nowrap">@(o.Phone2 ?? "-")</td>
+                        <td style="min-width:160px">@o.Address</td>
+                        <td style="min-width:180px">
+                            <strong>@o.ItemName</strong><br />
+                            <small class="text-muted">@o.QuantityText</small>
+                        </td>
+                        <td><span class="badge @(o.Status == OrderStatus.Pending ? "text-bg-warning" : "text-bg-success")">@(o.Status == OrderStatus.Pending ? "Pending" : "Done")</span></td>
+                        <td class="text-end text-nowrap">
+                            <div>Total: Rs @o.TotalPrice.ToString("N0")</div>
+                            <div>Paid: Rs @o.AdvancePaid.ToString("N0")</div>
+                            <div>Baqi: <strong>Rs @o.Remaining.ToString("N0")</strong></div>
+                        </td>
+                        <td class="text-nowrap">
+                            <div class="d-flex gap-1">
+                                <button type="button" class="btn btn-sm btn-success" data-receive data-id="@o.Id" data-customer="@o.CustomerName" data-remaining="@o.Remaining.ToString(CultureInfo.InvariantCulture)"><i class="bi bi-check2-all"></i> Payment Clear</button>
+                                <a class="btn btn-sm btn-outline-dark" href="/Order/Receipt/@o.Id?print=1" target="_blank" title="Receipt print"><i class="bi bi-printer"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (!Model.Orders.Any())
+    {
+        <div class="text-center text-muted py-5">Kisi ki payment baqi nahi hai. 🎉</div>
+    }
+    <div class="card-footer d-flex justify-content-between">
+        <span class="text-muted">@Model.Orders.Count customer(s)</span>
+        <span class="fw-bold">Total baqi: Rs @totalRemaining</span>
+    </div>
+</div>
+
+@await Html.PartialAsync("_PaymentModals")
+
+@section Scripts {
+    <script src="~/js/payments.js"></script>
+}

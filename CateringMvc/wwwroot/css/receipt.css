@@ -1,0 +1,60 @@
+body {
+    background: #f1f1f1;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 16px;
+    color: #000;
+}
+
+.toolbar {
+    width: 80mm;
+    max-width: 100%;
+    margin: 0 auto 12px;
+    display: flex;
+    gap: 8px;
+}
+.toolbar button {
+    flex: 1;
+    padding: 10px 12px;
+    font-size: 15px;
+    font-weight: 600;
+    border: 0;
+    border-radius: 8px;
+    background: #5a1b16;
+    color: #fff;
+    cursor: pointer;
+}
+.toolbar button.secondary { background: #777; flex: 0 0 90px; }
+
+.receipt {
+    width: 80mm;
+    max-width: 100%;
+    margin: 0 auto;
+    background: #fff;
+    padding: 12px 10px;
+    font-size: 13px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .15);
+    box-sizing: border-box;
+}
+.receipt h1 { font-size: 20px; text-align: center; margin: 0 0 2px; }
+.center { text-align: center; }
+hr { border: 0; border-top: 1px dashed #000; margin: 8px 0; }
+
+.r { display: flex; justify-content: space-between; gap: 8px; margin: 2px 0; }
+.r span:first-child { color: #333; }
+.addr { margin: 4px 0; }
+.addr span { color: #333; }
+.pending { font-weight: 700; border: 1px solid #000; margin: 6px 0 0; padding: 2px; }
+
+.item-title { font-size: 16px; font-weight: 700; }
+.qty { color: #333; margin-bottom: 6px; }
+.line { display: flex; justify-content: space-between; gap: 8px; margin: 4px 0; }
+.line small { display: block; color: #444; font-size: 11px; }
+.total { display: flex; justify-content: space-between; font-weight: 700; font-size: 17px; }
+.thanks { font-weight: 600; }
+
+@media print {
+    body { background: #fff; padding: 0; }
+    .no-print { display: none !important; }
+    .receipt { box-shadow: none; margin: 0; }
+}

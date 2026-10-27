@@ -1,0 +1,10 @@
+@model PriceFieldVm
+<div class="mb-3">
+    <label class="form-label" for="@Model.Name">@Model.Label</label>
+    <div class="input-group">
+        <span class="input-group-text">Rs</span>
+        <input type="number" min="0" step="any" id="@Model.Name" name="@Model.Name"
+               value="@Model.Value.ToString("0.##", CultureInfo.InvariantCulture)" class="form-control" required />
+    </div>
+    @Html.ValidationMessage(Model.Name, new { @class = "text-danger small" })
+</div>
